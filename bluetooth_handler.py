@@ -32,21 +32,35 @@ def Wifi_Scanner(app):
             scan_success = True
         except:
             scan_success = False
-    Reformat_Wifi(scanned_wifi)
-    app.send(scanned_wifi,5120)
+    wifiList = Reformat_Wifi(scanned_wifi)
+    app.send(wifiList,10240)
 
 def Reformat_Wifi(raw):
-    
-    while raw is not "":
+    wifiList = []
+    while raw != "":
+        item = ""
         raw = raw.strip()
         if raw.contains("\n"):
-            
+            item = raw[0:raw.index("\n")]
+        else:
+            item = raw
+        raw = raw.replace(item, "")
+        item = item.replace("ESSID:\"","")
+        item = item.replace("\"\n","")
+        item = item.replace("\"","")
+        print(item)
+        print(item not in wifiList)
+        if item.strip() != "" and item not in wifiList:
+            wifiList.append(item)
+            print("Added to wifiList")
+    
+    return wifiList
 
 def Connect_Wifi(app):
     reset = False
     while not reset:
         wifi_data_raw = app.recv(1024).decode('ascii')
-        if wifi_data_raw is not "Reset":
+        if wifi_data_raw != "Reset":
             reset = True
             wifi_data = json.loads(wifi_data_raw)
             #After getting data...
@@ -58,10 +72,10 @@ def Connect_Wifi(app):
             key = wifi_data["key"]
             key = key.strip()
 
-            subprocess.check_output('sudo sh -c \"wpa_passphrase \'{}\' \'{}\' >> /etc/wpa_supplicant/wpa_supplicant.conf"'.format(ssid, key),shell=True)
-            print('sudo sh -c \"wpa_passphrase \'{}\' \'{}\' >> /etc/wpa_supplicant/wpa_supplicant.conf"'.format(ssid, key))
+            subprocess.check_output('sudo sh -c \"wpa_passphrase \'{}\' >> /etc/wpa_supplicant/wpa_supplicant.conf"'.format(key),shell=True)
+            print('sudo sh -c \"wpa_passphrase \'{}\' >> /etc/wpa_supplicant/wpa_supplicant.conf"'.format(key))
         else:
-            Scan_Wifi(app)
+            Wifi_Scanner(app)
             reset = False
     Reconfigure_Wifi()
     return Check_Connection()
