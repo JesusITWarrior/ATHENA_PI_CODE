@@ -1,0 +1,1 @@
+print('sudo sh -c \"wpa_passphrase \'{}\' \'{}\' >> /etc/wpa_supplicant/wpa_supplicant.conf"'.format('Hi','There'))
