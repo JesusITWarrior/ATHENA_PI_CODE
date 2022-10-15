@@ -33,14 +33,17 @@ def Wifi_Scanner(app):
         except:
             scan_success = False
     wifiList = Reformat_Wifi(scanned_wifi)
-    app.send(wifiList,10240)
+    payload = json.dumps(wifiList)
+    print(payload)
+    app.send(payload.encode('utf-8'),10240)
 
-def Reformat_Wifi(raw):
+def Reformat_Wifi(rawBytes):
     wifiList = []
+    raw = rawBytes.decode('utf-8')
     while raw != "":
         item = ""
         raw = raw.strip()
-        if raw.contains("\n"):
+        if "\n" in raw:
             item = raw[0:raw.index("\n")]
         else:
             item = raw
@@ -48,32 +51,35 @@ def Reformat_Wifi(raw):
         item = item.replace("ESSID:\"","")
         item = item.replace("\"\n","")
         item = item.replace("\"","")
-        print(item)
-        print(item not in wifiList)
         if item.strip() != "" and item not in wifiList:
             wifiList.append(item)
-            print("Added to wifiList")
     
     return wifiList
 
 def Connect_Wifi(app):
+    print("Connection Attempt Started")
     reset = False
     while not reset:
+        print("Wifi creds listening")
         wifi_data_raw = app.recv(1024).decode('ascii')
+        print(wifi_data_raw)
         if wifi_data_raw != "Reset":
             reset = True
             wifi_data = json.loads(wifi_data_raw)
+            print(wifi_data)
             #After getting data...
             ssid = wifi_data["SSID"]
             ssid = ssid.strip()
+            print(ssid)
             username = wifi_data["identity"]
             if username is not None:
                 username = username.strip()
             key = wifi_data["key"]
             key = key.strip()
+            print(key)
 
-            subprocess.check_output('sudo sh -c \"wpa_passphrase \'{}\' >> /etc/wpa_supplicant/wpa_supplicant.conf"'.format(key),shell=True)
-            print('sudo sh -c \"wpa_passphrase \'{}\' >> /etc/wpa_supplicant/wpa_supplicant.conf"'.format(key))
+            subprocess.check_output('sudo sh -c \"wpa_passphrase \'{}\' \'{}\' >> /etc/wpa_supplicant/wpa_supplicant.conf"'.format(ssid, key),shell=True)
+            print('sudo sh -c \"wpa_passphrase \'{}\' \'{}\' >> /etc/wpa_supplicant/wpa_supplicant.conf"'.format(ssid, key))
         else:
             Wifi_Scanner(app)
             reset = False
@@ -150,7 +156,7 @@ def OnboardingProcess():
                 Credential_Accepter(app_sock)
                 
                 Wifi_Scanner(app_sock)
-                
+                print("Starting connection read")
                 while not is_connected:
                     is_connected = Connect_Wifi(app_sock)
                     print(is_connected)

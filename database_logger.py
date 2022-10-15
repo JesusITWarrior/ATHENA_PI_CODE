@@ -6,6 +6,7 @@ import datetime
 import json
 import config
 import io
+from time import sleep
 # make sure to run "python -m pip install azure-cosmos" before coding!
 
 HOST = config.settings['host']
