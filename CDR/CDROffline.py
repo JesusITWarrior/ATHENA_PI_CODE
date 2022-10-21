@@ -54,6 +54,11 @@ def imagecapture():
     camera.annotate_text = dt.datetime.now().strftime('Athena Fridge - %Y-%m-%d %H:%M:%S')
 
     sleep(2)#sleep for camera preview
+    camera.flash_mode = 'on'
+    #camera.brightness = 75
+    camera.exposure_mode = 'backlight'
+    camera.awb_mode = 'flash'
+    #camera.contrast = 100
     camera.capture ('masterpic.png')#takes still from camera
     camera.stop_preview()#stops view from camera
 
