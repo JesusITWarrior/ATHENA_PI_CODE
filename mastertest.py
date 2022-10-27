@@ -9,6 +9,7 @@ import os
 import base64
 from PIL import Image
 from bluetooth_handler import OnboardingProcess
+import asyncio
 
 
 def tempcheck():
@@ -84,38 +85,78 @@ def convertPicToString():
         return string
     else:
         return ""
-
+    
+async def mainProcess():
+    print("Starting logging loop...")
+    doorTask = asyncio.create_task(doorProcess())
+    asyncio.create_task(tempProcess())
+    await doorTask
+    
+async def doorProcess():
+    while True:
+        #Only runs if not interrupting. Otherwise, waits until it can interrupt
+        if not dontInterrupt:
+            dontInterrupt = True
+            
+            #If the door was open previously, it will run this code
+            if doorIsOpen:
+                doorIsOpen = doorcheck()
+                #if the door is currently closed, it takes a picture and logs to database
+                if not doorIsOpen:
+                    print("Door was closed. Taking picture...")
+                    imagecapture()
+                    pictureString = convertPicToString()
+                    picString = pictureString.decode('utf-8')
+                    database_logger.logData(temp, doorIsOpen, picString)
+                    print("Logged Door Status to Database")
+            #If the door was closed previously, it will run this code
+            else:
+                doorIsOpen = doorcheck()
+                #If door is currently open, log the data to reflect this
+                if doorIsOpen:
+                    print("Door was opened. Logging to database...")
+                    database_logger.logData(temp, doorIsOpen, picString)
+                    print("Logged Door Status to Database")
+            #All processes are finished, so other task can run now
+            dontInterrupt = False
+                
+            #Wait 5 seconds until next reading
+            await asyncio.sleep(5)
+        #Waits 1 second since it was interrupting
+        else:
+            print("Door Postponed")
+            await asyncio.sleep(1)
+    
+async def tempProcess():
+    while True:
+        print("Starting temperature log")
+        #Waits 5 seconds since it was interrupting
+        if dontInterrupt:
+            print("Temp Postponed")
+            await asyncio.sleep(5)
+        #Takes temperature and waits 20 minutes
+        else:
+            dontInterrupt = True
+            temp = int(tempcheck()[1])
+            database_logger.logData(temp, doorIsOpen, picString)
+            print("Logged Temperature to Database")
+            dontInterrupt = False
+            await asyncio.sleep(10)
+            #await asyncio.sleep(1200)
+        
+    
 OnboardingProcess()
 
-i=1
 database_logger.initConnection()
 temp = int(32)
 doorIsOpen = True
 try:
     picString = convertPicToString().decode('utf-8')
 except:
-    print("No picture/Picture parse error")
-    
+    print("No picture/Picture parse error")   
 
-while True:
-    if i % 5 == 0:
-        temp = int(tempcheck()[1])
-        doorIsOpen = doorcheck()
-        if doorIsOpen:
-            print("Door is Open")
-        else:
-            print("Door is Closed")
-        print(i)
-        database_logger.logData(temp, doorIsOpen, picString)
-        
-    if i % 15 == 0:
-        imagecapture()
-        i=0
-        pictureString = convertPicToString()
-        picString = pictureString.decode('utf-8')
-        database_logger.logData(temp, doorIsOpen, picString)
-        
-    sleep(1)
-    i=i+1
-    
+dontInterrupt = False
+i=1
+asyncio.run(mainProcess)
+
     
