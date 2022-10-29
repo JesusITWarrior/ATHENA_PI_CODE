@@ -1,20 +1,18 @@
-import asyncio
+import os
+import subprocess
 
-async def mainProcess():
-    print("Starting logging loop...")
-    doorTask = asyncio.create_task(doorProcess())
-    tempTask = asyncio.create_task(tempProcess())
-    await doorTask
+mine = subprocess.check_output("bluetoothctl devices", shell = True).decode('utf-8')
+#print(subprocess.check_output("bluetoothctl devices", shell = True).decode('utf-8'))
+if mine == "":
+    print("Nothing!")
+else:
+    print(mine)
     
-async def doorProcess():
-    while True:
-        print("Checking door status")
-        await asyncio.sleep(1)
-    
-    
-async def tempProcess():
-    while True:
-        print("Starting temperature log")
-        await asyncio.sleep(5)
-    
-asyncio.run(mainProcess())
+while mine != "":
+    device = mine[7:24:1]
+    mine = mine[mine.index("\n")+1:len(mine):1]
+    os.system("sudo bluetoothctl disconnect {}".format(device))
+    os.system("sudo bluetoothctl remove {}".format(device))
+    print(device)
+#os.system("bluetoothctl devices")
+#os.system("")

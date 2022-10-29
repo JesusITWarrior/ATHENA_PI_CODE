@@ -11,6 +11,15 @@ def discover_devices():
     subprocess.check_output('sudo hciconfig hci0 piscan', shell = True)
     print("Discovering...")
     
+def clear_devices():
+    connectedDevices = subprocess.check_output("bluetoothctl devices",shell=True).decode('utf-8')
+    while connectedDevices != "":
+        deviceID = connectedDevices[7:24:1]
+        connectedDevices = connectedDevices[connectedDevices.index("\n")+1:len(connectedDevices):1]
+        os.system("sudo bluetoothctl disconnect {}".format(deviceID))
+        os.system("sudo bluetoothctl remove {}".format(deviceID))
+        print("Removed {} from the pairing.".format(deviceID))
+    
 def Credential_Accepter(app):
     credentials_raw = app.recv(1024).decode("ascii")
     credentials = json.loads(credentials_raw)
@@ -147,6 +156,7 @@ def OnboardingProcess():
         error = True
         while error:
             try:
+                clear_devices()
                 discover_devices()
                 
                 sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
