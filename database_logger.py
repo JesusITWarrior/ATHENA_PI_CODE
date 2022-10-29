@@ -77,12 +77,12 @@ def fetch_guid(username, password):
     global GUID
     print(username+" "+password)
     i = 0
-    while i < 10:
+    while i < 40:
         try:
             client = cosmos_client.CosmosClient(HOST,{'masterKey':MASTER_KEY},user_agent="CosmosDBPythonQuickstart", user_agent_overwrite=True)
             break
         except Exception as clientOOF:
-            print(clientOOF)
+            print("Azure failed: {}".format(clientOOF))
             i += 1
             sleep(0.25)
         

@@ -18,7 +18,14 @@ def Credential_Accepter(app):
     print(username)
     password = credentials["password"]
     print(password)
-    with open("/home/pi/Athena Data/Credentials.txt", "w+") as cred_file:
+    if not os.path.exists("/home/pi/Athena Data"):
+        path = os.path.join("/home/pi","Athena Data")
+        try:
+            os.mkdir(path)
+        except:
+            print("Directory Creation Error")
+            return None
+    with open("/home/pi/Athena Data/Credentials.txt", "w") as cred_file:
         cred_file.write(username+"\r"+password)
         cred_file.close()
     

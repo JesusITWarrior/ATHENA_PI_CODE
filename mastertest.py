@@ -15,6 +15,7 @@ import asyncio
 def tempcheck():
     sensor = W1ThermSensor()
     temperature = sensor.get_temperature()
+    #converts the temperature into Farenheit
     tempf = ((temperature *1.8)+32)
     print("Current Temp is %s celsius and %s fahrenheit" % (temperature , tempf))
     return temperature, tempf
@@ -24,21 +25,12 @@ def doorcheck():
     GPIO.setmode(GPIO.BCM)
     GPIO.setup(16, GPIO.IN)
     if GPIO.input(16) == 1:
-        doorstatus = False #Door closed
+        return False #Door closed
     else:
-        doorstatus = True #Door open
-    return doorstatus
+        return True #Door open
 
 
 def imagecapture():
-    #Turn on LED while camera is warming up
-    GPIO.setmode (GPIO.BCM)
-    GPIO.setwarnings(False)
-    GPIO.setup(17,GPIO.OUT)#sets GPIO17 as an output pin
-    GPIO.output(17,GPIO.HIGH)#sets LED ON
-    sleep(2)#sleep for LED being on
-
-
     camera = PiCamera()
     sleep(2)
     camera.resolution = (1920, 1080)
@@ -55,6 +47,13 @@ def imagecapture():
     camera.annotate_text = dt.datetime.now().strftime('Athena Fridge - %Y-%m-%d %H:%M:%S')
 
     sleep(2)#sleep for camera preview
+    
+    #Turn on LED
+    GPIO.setmode (GPIO.BCM)
+    GPIO.setwarnings(False)
+    GPIO.setup(17,GPIO.OUT)#sets GPIO17 as an output pin
+    GPIO.output(17,GPIO.HIGH)#sets LED ON
+
     camera.capture ('masterpic.png')#takes still from camera
     camera.stop_preview()#stops view from camera
 
