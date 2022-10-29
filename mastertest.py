@@ -92,6 +92,9 @@ async def mainProcess():
     await doorTask
     
 async def doorProcess():
+    global dontInterrupt
+    global doorIsOpen
+    global picString
     while True:
         #Only runs if not interrupting. Otherwise, waits until it can interrupt
         if not dontInterrupt:
@@ -127,6 +130,9 @@ async def doorProcess():
             await asyncio.sleep(1)
     
 async def tempProcess():
+    global dontInterrupt
+    global doorIsOpen
+    global picString
     while True:
         print("Starting temperature log")
         #Waits 5 seconds since it was interrupting
@@ -152,10 +158,10 @@ doorIsOpen = True
 try:
     picString = convertPicToString().decode('utf-8')
 except:
-    print("No picture/Picture parse error")   
+    print("No picture/Picture parse error")
+    picString = ""
 
 dontInterrupt = False
-i=1
-asyncio.run(mainProcess)
+asyncio.run(mainProcess())
 
     
