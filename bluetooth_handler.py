@@ -58,6 +58,7 @@ def Reformat_Wifi(rawBytes):
         item = item.replace("ESSID:\"","")
         item = item.replace("\"\n","")
         item = item.replace("\"","")
+        item = item.replace("\\x00","")
         if item.strip() != "" and item not in wifiList:
             wifiList.append(item)
     

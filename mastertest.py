@@ -53,13 +53,18 @@ def imagecapture():
     GPIO.setwarnings(False)
     GPIO.setup(17,GPIO.OUT)#sets GPIO17 as an output pin
     GPIO.output(17,GPIO.HIGH)#sets LED ON
+    
+    sleep(0.5)
 
-    camera.capture ('masterpic.png')#takes still from camera
+    
+    camera.capture ('/home/pi/Athena Data/masterpic.png')#takes still from camera
+    GPIO.output(17,GPIO.LOW)#turns off LED
+    
     camera.stop_preview()#stops view from camera
-
+    
     sleep(2)
 
-    im=Image.open('masterpic.png')
+    im=Image.open('/home/pi/Athena Data/masterpic.png')
     width, height = im.size
 
     left = 350 #width/2
@@ -69,17 +74,15 @@ def imagecapture():
 
     im1=im.crop((left, top, right, bottom))
     
-    im1.save('masterpic1.png')
-
-    GPIO.output(17,GPIO.LOW)#turns off LED
+    im1.save('/home/pi/Athena Data/masterpic1.png')
 
     camera.stop_preview()
     
     camera.close()
 
 def convertPicToString():
-    if os.path.exists('masterpic1.png'):
-        with open('masterpic1.png','rb') as img_file:
+    if os.path.exists('/home/pi/Athena Data/masterpic1.png'):
+        with open('/home/pi/Athena Data/masterpic1.png','rb') as img_file:
             string = base64.b64encode(img_file.read())
         return string
     else:
@@ -123,7 +126,8 @@ async def doorProcess():
             dontInterrupt = False
                 
             #Wait 5 seconds until next reading
-            await asyncio.sleep(5)
+            #await asyncio.sleep(5)
+            await asyncio.sleep(3)
         #Waits 1 second since it was interrupting
         else:
             print("Door Postponed")
