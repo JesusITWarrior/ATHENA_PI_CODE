@@ -57,14 +57,14 @@ def imagecapture():
     sleep(0.5)
 
     
-    camera.capture ('/home/pi/Athena Data/masterpic.png')#takes still from camera
+    camera.capture ('/home/pi/Athena Data/masterpic.jpg')#takes still from camera
     GPIO.output(17,GPIO.LOW)#turns off LED
     
     camera.stop_preview()#stops view from camera
     
     sleep(2)
 
-    im=Image.open('/home/pi/Athena Data/masterpic.png')
+    im=Image.open('/home/pi/Athena Data/masterpic.jpg')
     width, height = im.size
 
     left = 350 #width/2
@@ -74,15 +74,15 @@ def imagecapture():
 
     im1=im.crop((left, top, right, bottom))
     
-    im1.save('/home/pi/Athena Data/masterpic1.png')
+    im1.save('/home/pi/Athena Data/masterpic1.jpg')
 
     camera.stop_preview()
     
     camera.close()
 
 def convertPicToString():
-    if os.path.exists('/home/pi/Athena Data/masterpic1.png'):
-        with open('/home/pi/Athena Data/masterpic1.png','rb') as img_file:
+    if os.path.exists('/home/pi/Athena Data/masterpic1.jpg'):
+        with open('/home/pi/Athena Data/masterpic1.jpg','rb') as img_file:
             string = base64.b64encode(img_file.read())
         return string
     else:
@@ -98,6 +98,7 @@ async def doorProcess():
     global dontInterrupt
     global doorIsOpen
     global picString
+    global temp
     while True:
         #Only runs if not interrupting. Otherwise, waits until it can interrupt
         if not dontInterrupt:
@@ -112,7 +113,8 @@ async def doorProcess():
                     imagecapture()
                     pictureString = convertPicToString()
                     picString = pictureString.decode('utf-8')
-                    database_logger.logData(temp, doorIsOpen, picString)
+                    database_logger.log_status(temp, doorIsOpen)
+                    database_logger.log_picture(picString)
                     print("Logged Door Status to Database")
             #If the door was closed previously, it will run this code
             else:
@@ -120,7 +122,7 @@ async def doorProcess():
                 #If door is currently open, log the data to reflect this
                 if doorIsOpen:
                     print("Door was opened. Logging to database...")
-                    database_logger.logData(temp, doorIsOpen, picString)
+                    database_logger.log_status(temp, doorIsOpen)
                     print("Logged Door Status to Database")
             #All processes are finished, so other task can run now
             dontInterrupt = False
@@ -137,6 +139,7 @@ async def tempProcess():
     global dontInterrupt
     global doorIsOpen
     global picString
+    global temp
     while True:
         print("Starting temperature log")
         #Waits 5 seconds since it was interrupting
@@ -146,14 +149,14 @@ async def tempProcess():
         #Takes temperature and waits 20 minutes
         else:
             dontInterrupt = True
-            temp = int(tempcheck()[1])
-            database_logger.logData(temp, doorIsOpen, picString)
+            temp = int(tempcheck())
+            database_logger.log_status(temp, doorIsOpen)
             print("Logged Temperature to Database")
             dontInterrupt = False
             await asyncio.sleep(10)
             #await asyncio.sleep(1200)
         
-    
+print("Starting Athena Program:")
 OnboardingProcess()
 
 database_logger.initConnection()

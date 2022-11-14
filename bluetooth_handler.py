@@ -108,11 +108,16 @@ def Reconfigure_Wifi():
     
 def Check_Connection():
     i = 0
-    while i < 30:
+    LINE_UP = '/033[1A'
+    LINE_CLEAR = '/x1b[2K'
+    print("Checking WiFi Connection...")
+    while i <= 30:
         #This doesn't account for website requiring logins
+        print('\r',"Attempting Connection... {}".format(i), sep='',end='',flush = True)
         try:
             result = subprocess.check_output('sudo iwgetid', shell = True)
             if result is not None:
+                print('')
                 return True
             else:
                 sleep(1)
@@ -120,6 +125,7 @@ def Check_Connection():
         except:
             sleep(1)
             i = i + 1
+    print('')
     return False
     
 def get_guid():
@@ -151,6 +157,7 @@ def OnboardingProcess():
         print("Not Connected... Starting Onboarding.")
         try:
             os.remove("/home/pi/Athena Data/Guid.txt")
+            os.remove("/home/pi/Athena Data/Uuid.txt")
         except:
             print("No previous GUID found")
         error = True
